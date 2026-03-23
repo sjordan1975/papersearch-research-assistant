@@ -28,5 +28,8 @@ streamlit>=1.45.0
 # Tokenization
 tiktoken==0.12.0
 
+# Testing
+pytest==9.0.2
+
 # Utilities
 python-dotenv==1.2.2
