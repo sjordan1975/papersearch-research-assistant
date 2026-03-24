@@ -5,7 +5,7 @@ Usage:
     python scripts/evaluate.py
     python scripts/evaluate.py --max-queries 50
     python scripts/evaluate.py --chunking fixed --embedding all-MiniLM-L6-v2 --retriever dense
-    python scripts/evaluate.py --grid --output-dir results/
+    python scripts/evaluate.py --grid
 
 Runs the experiment grid (or a single config) and outputs IR metrics
 (Precision@K, Recall@K, MRR, NDCG@K) as JSON.
@@ -95,8 +95,8 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=None,
-        help="Directory to save result JSON files",
+        default=Path("outputs"),
+        help="Directory to save result JSON files (default: outputs/)",
     )
     parser.add_argument(
         "--max-queries",
