@@ -109,6 +109,16 @@ class BaseLLM(ABC):
         prompt: str,
         system_prompt: str | None = None,
         temperature: float = 0.0,
+        metadata: dict | None = None,
     ) -> str:
-        """Generate a response from the LLM."""
+        """Generate a response from the LLM.
+
+        Args:
+            prompt: The user message.
+            system_prompt: Optional system message.
+            temperature: Sampling temperature (0.0 = deterministic).
+            metadata: Optional dict forwarded to the LLM provider for
+                observability. LiteLLM passes this to Langfuse as trace
+                context. Useful keys: trace_name, trace_id, session_id.
+        """
         ...
