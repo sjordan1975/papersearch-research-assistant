@@ -11,12 +11,12 @@ faiss-cpu==1.13.2
 rank-bm25==0.2.2
 
 # LLM
-litellm==1.82.4
+litellm>=1.79,<1.80  # pinned: 1.82+ breaks langfuse 2.x (sdk_integration kwarg)
 openai==2.29.0
 instructor==1.14.5
 
 # LLM observability (optional — works without it)
-langfuse==4.0.1
+langfuse>=2.60,<3  # pinned: v3/v4 incompatible with litellm's langfuse integration
 
 # Data models
 pydantic==2.12.5

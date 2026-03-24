@@ -107,7 +107,7 @@ def build_retriever(
             chunk_lookup=chunk_lookup,
         )
         bm25 = BM25Retriever(chunks=chunks)
-        return HybridRetriever(dense=dense, bm25=bm25)
+        return HybridRetriever(dense_retriever=dense, bm25_retriever=bm25)
 
 
 # ---------------------------------------------------------------------------

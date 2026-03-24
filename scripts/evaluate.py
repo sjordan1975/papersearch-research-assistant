@@ -64,6 +64,11 @@ def format_metrics(result) -> str:
             f"    Citation:     {result.judge_scores.citation_quality:.2f}",
             f"    Average:      {result.judge_scores.average:.2f}",
         ])
+    if result.duration_seconds is not None:
+        lines.extend([
+            "-" * 50,
+            f"  Duration: {result.duration_seconds:.1f}s",
+        ])
     lines.append("-" * 50)
     return "\n".join(lines)
 
@@ -142,6 +147,18 @@ def main():
         help="Top-K for retrieval (default: 5)",
     )
 
+    parser.add_argument(
+        "--alpha",
+        type=float,
+        default=0.5,
+        help="Hybrid fusion alpha (default: 0.5). 1.0 = pure dense, 0.0 = pure BM25.",
+    )
+    parser.add_argument(
+        "--reranker",
+        default=None,
+        help="Reranker model (e.g. cross-encoder/ms-marco-MiniLM-L-6-v2). None = no reranking.",
+    )
+
     # Grid option
     parser.add_argument(
         "--grid",
@@ -190,6 +207,8 @@ def main():
             embedding_model=embedding,
             retriever_type=retriever,
             top_k=args.top_k,
+            hybrid_alpha=args.alpha,
+            reranker=args.reranker,
         )]
         logger.info("Running single config: %s", config_to_id(configs[0]))
     else:
@@ -201,6 +220,8 @@ def main():
             embedding_model="all-MiniLM-L6-v2",
             retriever_type=RetrieverType.HYBRID,
             top_k=args.top_k,
+            hybrid_alpha=args.alpha,
+            reranker=args.reranker,
         )]
         logger.info("Running default config: %s", config_to_id(configs[0]))
 

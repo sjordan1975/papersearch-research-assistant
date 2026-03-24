@@ -156,11 +156,12 @@ def main():
     chunks_path = chunks_dir / f"{config_key}.json"
 
     # Save chunks as JSON (for BM25 and lookup)
+    # Use mode="json" to ensure UUIDs and enums are serialized properly
     chunks_data = [
         {
             "id": str(c.id),
             "content": c.content,
-            "metadata": c.metadata.model_dump(),
+            "metadata": c.metadata.model_dump(mode="json"),
         }
         for c in all_chunks
     ]

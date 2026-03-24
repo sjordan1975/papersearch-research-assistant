@@ -110,6 +110,8 @@ class ExperimentConfig(BaseModel):
     embedding_model: str  # e.g. "all-MiniLM-L6-v2"
     retriever_type: RetrieverType
     top_k: int = 5
+    hybrid_alpha: float = 0.5  # dense vs BM25 weight for hybrid retrieval
+    reranker: str | None = None  # e.g. "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 
 class RetrievalMetrics(BaseModel):
@@ -141,3 +143,4 @@ class ExperimentResult(BaseModel):
     judge_scores: JudgeScores | None = None
     num_queries: int
     query_ids: list[str] = Field(default_factory=list)
+    duration_seconds: float | None = None

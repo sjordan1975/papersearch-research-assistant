@@ -14,6 +14,7 @@ computed once per unique config and reused.
 
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Iterator
 from uuid import uuid4
@@ -36,6 +37,7 @@ from src.models import (
     RetrievalResult,
     RetrieverType,
 )
+from src.reranking.cross_encoder import CrossEncoderReranker
 from src.retrieval.bm25 import BM25Retriever
 from src.retrieval.dense import DenseRetriever
 from src.retrieval.hybrid import HybridRetriever
@@ -73,30 +75,45 @@ def build_experiment_grid(
     chunk_size: int = 512,
     chunk_overlap: int = 0,
     top_k: int = 5,
+    hybrid_alphas: list[float] | None = None,
 ) -> list[ExperimentConfig]:
     """Generate all experiment configurations from parameter space."""
     strategies = chunking_strategies or DEFAULT_CHUNKING_STRATEGIES
     models = embedding_models or DEFAULT_EMBEDDING_MODELS
     retrievers = retriever_types or DEFAULT_RETRIEVER_TYPES
+    alphas = hybrid_alphas or [0.5]
 
     configs = []
     for strategy in strategies:
         for model in models:
             for retriever in retrievers:
-                configs.append(ExperimentConfig(
-                    chunking_strategy=strategy,
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    embedding_model=model,
-                    retriever_type=retriever,
-                    top_k=top_k,
-                ))
+                if retriever == RetrieverType.HYBRID and len(alphas) > 1:
+                    for alpha in alphas:
+                        configs.append(ExperimentConfig(
+                            chunking_strategy=strategy,
+                            chunk_size=chunk_size,
+                            chunk_overlap=chunk_overlap,
+                            embedding_model=model,
+                            retriever_type=retriever,
+                            top_k=top_k,
+                            hybrid_alpha=alpha,
+                        ))
+                else:
+                    configs.append(ExperimentConfig(
+                        chunking_strategy=strategy,
+                        chunk_size=chunk_size,
+                        chunk_overlap=chunk_overlap,
+                        embedding_model=model,
+                        retriever_type=retriever,
+                        top_k=top_k,
+                        hybrid_alpha=alphas[0] if retriever == RetrieverType.HYBRID else 0.5,
+                    ))
     return configs
 
 
 def config_to_id(config: ExperimentConfig) -> str:
     """Generate a deterministic ID from config for caching and results."""
-    return (
+    base = (
         f"{config.chunking_strategy.value}_"
         f"{config.chunk_size}_"
         f"{config.chunk_overlap}_"
@@ -104,6 +121,14 @@ def config_to_id(config: ExperimentConfig) -> str:
         f"{config.retriever_type.value}_"
         f"k{config.top_k}"
     )
+    # Include alpha when not default (0.5) or when using hybrid
+    if config.retriever_type == RetrieverType.HYBRID and config.hybrid_alpha != 0.5:
+        base += f"_a{config.hybrid_alpha}"
+    if config.reranker:
+        # Short name: "cross-encoder/ms-marco-MiniLM-L-6-v2" → "rerank-MiniLM"
+        short = config.reranker.split("/")[-1][:12]
+        base += f"_rr-{short}"
+    return base
 
 
 # ---------------------------------------------------------------------------
@@ -262,6 +287,7 @@ class ExperimentRunner:
         """
         experiment_id = config_to_id(config)
         logger.info("Running experiment: %s", experiment_id)
+        t0 = time.perf_counter()
 
         # 1. Chunk all corpus sections
         chunker = get_chunker(config)
@@ -281,18 +307,40 @@ class ExperimentRunner:
         retriever = self._build_retriever(config, all_chunks)
 
         # 3. Run retrieval for each query
-        query_ids = list(self.aligner.corpus_query_ids)
+        # Filter to queries where the qrel's doc_id exists in our chunks
+        available_docs = {
+            Path(c.metadata.source).stem for c in all_chunks
+        }
+        query_ids = [
+            qid for qid in self.aligner.corpus_query_ids
+            if self.aligner.qrels[qid]["doc_id"] in available_docs
+        ]
+        logger.info("Filtered to %d queries with docs in corpus", len(query_ids))
+
         if max_queries:
             query_ids = query_ids[:max_queries]
+
+        # Build optional reranker
+        reranker = None
+        if config.reranker:
+            reranker = CrossEncoderReranker(model_name=config.reranker)
+            # Retrieve more candidates for reranking to choose from
+            retrieve_k = config.top_k * 3
+            logger.info("Reranking enabled: retrieving %d, reranking to %d", retrieve_k, config.top_k)
+        else:
+            retrieve_k = config.top_k
 
         query_results: dict[str, list[RetrievalResult]] = {}
         for query_id in query_ids:
             query_text = self.aligner.queries[query_id]["query"]
-            results = retriever.retrieve(query_text, top_k=config.top_k)
+            results = retriever.retrieve(query_text, top_k=retrieve_k)
+            if reranker:
+                results = reranker.rerank(query_text, results, top_k=config.top_k)
             query_results[query_id] = results
 
         # 4. Evaluate with ground truth
         metrics = self.aligner.evaluate(query_results, k=config.top_k)
+        duration = time.perf_counter() - t0
 
         return ExperimentResult(
             experiment_id=experiment_id,
@@ -300,6 +348,7 @@ class ExperimentRunner:
             metrics=metrics,
             num_queries=len(query_ids),
             query_ids=query_ids,
+            duration_seconds=round(duration, 2),
         )
 
     def _build_retriever(
@@ -338,7 +387,7 @@ class ExperimentRunner:
                 chunk_lookup=chunk_map,
             )
             bm25 = BM25Retriever(chunks=chunks)
-            return HybridRetriever(dense=dense, bm25=bm25)
+            return HybridRetriever(dense_retriever=dense, bm25_retriever=bm25, alpha=config.hybrid_alpha)
         else:
             raise ValueError(f"Unknown retriever type: {config.retriever_type}")
 
