@@ -1,7 +1,7 @@
 # PDF processing
 pymupdf==1.27.2
 
-# Embeddings (local models — NEW for this project)
+# Embeddings
 sentence-transformers>=4.0.0
 
 # Vector store
@@ -15,7 +15,7 @@ litellm>=1.79,<1.80  # pinned: 1.82+ breaks langfuse 2.x (sdk_integration kwarg)
 openai==2.29.0
 instructor==1.14.5
 
-# LLM observability (optional — works without it)
+# LLM observability
 langfuse>=2.60,<3  # pinned: v3/v4 incompatible with litellm's langfuse integration
 
 # Data models
@@ -25,7 +25,7 @@ pydantic==2.12.5
 matplotlib==3.10.8
 seaborn==0.13.2
 
-# Web UI (NEW for this project)
+# Web UI 
 streamlit>=1.45.0
 
 # Tokenization
