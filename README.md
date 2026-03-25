@@ -142,6 +142,8 @@ streamlit run app.py
 python -m pytest tests/ -v
 ```
 
+235 tests covering models, chunking, preprocessing, embedding, vector store, retrieval, evaluation metrics, QA generation, experiment grid runner, reranking, and integration.
+
 ## Operational Evidence Run
 
 To reproduce the full experiment grid and generate all visualizations:
