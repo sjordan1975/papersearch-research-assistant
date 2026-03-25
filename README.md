@@ -160,8 +160,6 @@ Results and charts are saved to `outputs/`.
 
 LLM calls (answer generation, judging) are automatically traced to [Langfuse](https://langfuse.com) when credentials are configured. Fire-and-forget: set the keys to enable, leave them out and everything works normally with no tracing.
 
-**What's traced:** prompts, responses, latency, token counts, cost per call.
-
 **Why it matters:** debug prompt issues, track API costs, monitor response latency in production.
 
 **Setup:** Add `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_HOST` to `.env.local`. See `.env.example` for details.
