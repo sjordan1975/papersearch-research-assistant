@@ -32,6 +32,8 @@ Based on 488 queries across 50 papers (dev subset of Open RAG Benchmark):
 
 \*See [Why Precision@5 is below target](#why-precision5-is-below-target) for explanation.
 
+The dev subset (50 papers, 488 queries across all 4 query source types) was selected for query diversity to validate the full experiment grid efficiently. The pipeline supports the complete 1,000-paper benchmark — at that scale, 604 additional papers act as retrieval distractors (no associated queries), testing robustness against noise. The architecture, evaluation methodology, and component interfaces are corpus-size-agnostic; scaling up is a runtime decision, not a code change.
+
 **Best configuration:**
 
 - Chunking: fixed (512 chars)
@@ -109,12 +111,12 @@ Then edit `.env.local` with your OpenAI API key.
 python scripts/download_corpus.py
 python scripts/download_papers.py
 
-# Full dataset (1000 papers) — optional
+# Full dataset (1000 papers)
 python scripts/download_corpus.py --n-papers 1000
 python scripts/download_papers.py --n-papers 1000
 ```
 
-Downloads are idempotent — skips already-downloaded files. At N>396, extra papers are distractors (no queries, but they add retrieval noise).
+Downloads are idempotent — skips already-downloaded files. The full benchmark contains 396 papers with queries; papers beyond that are distractors that add retrieval noise without evaluation signal.
 
 ### 3) Ingest and Index
 
