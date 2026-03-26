@@ -239,6 +239,8 @@ Modular monolith with CLI-driven batch stages. Each stage reads from and writes 
 | Hybrid retrieval | Alpha-weighted fusion | RRF, learned fusion | Simple, interpretable, tunable; alpha sweep found optimal at 0.52 |
 | Reranking | Cross-encoder | No reranking | +7% MRR for 2× latency — worth it for quality-sensitive use cases |
 | Caching | Layered by pipeline stage | Recompute each run | Embedding is the bottleneck; caching cuts 12 experiment runs to 6 unique embedding jobs |
+| PDF parsing | PyMuPDF + regex preprocessing | LLM-based extraction (GPT-4V, Marker, Docling) | Deterministic, fast, zero API cost. arXiv papers are text-heavy, mostly single-column, minimal tables — PyMuPDF handles them well. LLM extraction trades cost + latency for layout robustness; would be spending dollars to solve a problem we didn't have. |
+| Intermediate artifacts | In-memory (PDF → chunks) | Materialize .txt/.md per document | Simpler pipeline, fewer files to manage. Re-parsing is cheap (<1s/PDF). Would materialize for: slow extraction (OCR), multi-team handoffs, or debugging extraction quality. |
 
 ## Tech Stack
 
