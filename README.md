@@ -25,7 +25,7 @@ Based on 488 queries across 50 papers (dev subset of Open RAG Benchmark):
 
 | Metric | Value | Target | Status |
 | --- | ---: | ---: | --- |
-| Recall@5 | 1.67 | > 0.80 | PASS |
+| Recall@5 | 0.89 | > 0.80 | PASS |
 | MRR | 0.789 | > 0.70 | PASS |
 | NDCG@5 | 0.797 | > 0.75 | PASS |
 | Precision@5 | 0.33 | > 0.60 | Structural limit* |

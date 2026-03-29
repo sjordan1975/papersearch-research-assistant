@@ -119,6 +119,12 @@ class TestRecallAtK:
         # Edge case: no relevant docs exist
         assert recall_at_k([False, False], k=2, total_relevant=0) == 0.0
 
+    def test_caps_at_one_when_multiple_chunks_from_same_section(self):
+        from src.evaluation.metrics import recall_at_k
+        # One relevant section produces multiple chunks; both retrieved
+        # Should cap at 1.0, not 2.0
+        assert recall_at_k([True, True, False], k=3, total_relevant=1) == 1.0
+
 
 class TestMRR:
     """MRR = 1 / rank_of_first_relevant_result (0 if none found)."""

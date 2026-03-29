@@ -129,10 +129,6 @@ def plot_radar(df: pd.DataFrame, output_dir: Path, show: bool = False):
     metrics = ["precision", "recall", "mrr", "ndcg"]
     metric_labels = ["Precision@K", "Recall@K", "MRR", "NDCG@K"]
 
-    # Normalize recall (can be > 1) for radar chart
-    df_norm = top_configs.copy()
-    df_norm["recall"] = df_norm["recall"] / df_norm["recall"].max()
-
     # Radar chart setup
     angles = np.linspace(0, 2 * np.pi, len(metrics), endpoint=False).tolist()
     angles += angles[:1]  # Close the polygon
@@ -140,7 +136,7 @@ def plot_radar(df: pd.DataFrame, output_dir: Path, show: bool = False):
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
 
     colors = ["#e74c3c", "#3498db", "#2ecc71"]
-    for i, (_, row) in enumerate(df_norm.iterrows()):
+    for i, (_, row) in enumerate(top_configs.iterrows()):
         values = [row[m] for m in metrics]
         values += values[:1]  # Close polygon
 

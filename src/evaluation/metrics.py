@@ -24,15 +24,16 @@ def precision_at_k(retrieved_relevant: list[bool], k: int) -> float:
 def recall_at_k(
     retrieved_relevant: list[bool], k: int, total_relevant: int = 1
 ) -> float:
-    """Recall@K = (relevant found in top-K) / total_relevant.
+    """Recall@K = (relevant found in top-K) / total_relevant, capped at 1.0.
 
     In this dataset total_relevant=1 per query (one qrel section),
-    so recall is binary: 0.0 or 1.0.
+    but that section may produce multiple chunks. We cap at 1.0 to
+    answer "did we find it?" rather than "how many chunks did we find?"
     """
     if total_relevant == 0:
         return 0.0
     top_k = retrieved_relevant[:k]
-    return sum(top_k) / total_relevant
+    return min(sum(top_k), total_relevant) / total_relevant
 
 
 def mrr(retrieved_relevant: list[bool]) -> float:
