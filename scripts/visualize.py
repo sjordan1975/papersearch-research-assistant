@@ -140,7 +140,7 @@ def plot_radar(df: pd.DataFrame, output_dir: Path, show: bool = False):
         values = [row[m] for m in metrics]
         values += values[:1]  # Close polygon
 
-        label = f"{row['chunking']}/{row['retriever']}"
+        label = f"{row['chunking']}/{row['embedding'].split('-')[1][:4]}/{row['retriever']}"
         ax.plot(angles, values, "o-", linewidth=2, label=label, color=colors[i])
         ax.fill(angles, values, alpha=0.15, color=colors[i])
 
