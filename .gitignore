@@ -63,6 +63,7 @@ wheels/
 # Private documentation
 _README.md
 **/_instructions.md
+**/_flow.md
 **/_plan.md
 **/_runbook.md
 **/iteration_log.md
