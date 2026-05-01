@@ -32,7 +32,7 @@ Based on 488 queries across 50 papers (dev subset of Open RAG Benchmark):
 
 \*See [Why Precision@5 is below target](#why-precision5-is-below-target) for explanation.
 
-The dev subset (50 papers, 488 queries across all 4 query source types) was selected for query diversity to validate the full experiment grid efficiently. The pipeline supports the complete 1,000-paper benchmark — at that scale, 604 additional papers act as retrieval distractors (no associated queries), testing robustness against noise. The architecture, evaluation methodology, and component interfaces are corpus-size-agnostic; scaling up is a runtime decision, not a code change.
+The dev subset (50 papers, 488 queries across all 4 query source types) was selected for query diversity to validate the full experiment grid efficiently. The pipeline supports the complete 1,000-paper benchmark; at that scale, 604 additional papers act as retrieval distractors (no associated queries), testing robustness against noise. The architecture, evaluation methodology, and component interfaces are corpus-size-agnostic; scaling up is a runtime decision, not a code change.
 
 **Best configuration:**
 
@@ -47,9 +47,9 @@ The dev subset (50 papers, 488 queries across all 4 query source types) was sele
 
 - **Reranking provides the final quality boost.** Adding a cross-encoder reranker improved MRR from 0.733 to 0.789 (+7.6%) and NDCG from 0.747 to 0.797 (+6.7%), closing the gap to targets. The tradeoff: 2× latency (110s → 252s for a full eval run).
 
-- **MiniLM matches mpnet quality at 5× the speed.** The smaller embedding model (384d) achieved comparable retrieval quality to mpnet-base (768d) while running significantly faster — a clear win for this domain.
+- **MiniLM matches mpnet quality at 5× the speed.** The smaller embedding model (384d) achieved comparable retrieval quality to mpnet-base (768d) while running significantly faster: a clear win for this domain.
 
-- **Precision@5 target was structurally unreachable.** The benchmark has one relevant section per query. At 512-char chunks, each section yields 1-2 chunks. With K=5, the theoretical max P@5 is ~0.40. Our 0.33 represents 83% of the ceiling — strong retrieval, not a quality failure.
+- **Precision@5 target was structurally unreachable.** The benchmark has one relevant section per query. At 512-char chunks, each section yields 1-2 chunks. With K=5, the theoretical max P@5 is ~0.40. Our 0.33 represents 83% of the ceiling: strong retrieval, not a quality failure.
 
 ## Visual Evidence
 
@@ -116,7 +116,7 @@ python scripts/download_corpus.py --n-papers 1000
 python scripts/download_papers.py --n-papers 1000
 ```
 
-Downloads are idempotent — skips already-downloaded files. The full benchmark contains 396 papers with queries; papers beyond that are distractors that add retrieval noise without evaluation signal.
+Downloads are idempotent; they skip already-downloaded files. The full benchmark contains 396 papers with queries; papers beyond that are distractors that add retrieval noise without evaluation signal.
 
 ### 3) Ingest and Index
 
@@ -172,7 +172,7 @@ LLM calls (answer generation, judging) are automatically traced to [Langfuse](ht
 
 ## Why Precision@5 Is Below Target
 
-The 0.60 Precision@5 target is **structurally unreachable** with this benchmark — not a retrieval failure.
+The 0.60 Precision@5 target is **structurally unreachable** with this benchmark, not a retrieval failure.
 
 Each benchmark query has exactly one relevant section. At 512-char chunk size, that section typically produces 1-2 chunks. When retrieving K=5 chunks, the theoretical maximum precision is:
 
@@ -187,7 +187,7 @@ Our achieved P@5 of 0.33 represents **83% of the theoretical ceiling**. We hit t
 
 - Semantic chunking with mpnet is pathologically slow (3+ hours for 50 papers). The 3 configs using this combination were excluded from experiments.
 - PDF extraction quality varies. Some arXiv papers have complex layouts that PyMuPDF doesn't handle well.
-- The web UI is functional but minimal — no document upload, no saved history.
+- The web UI is functional but minimal (no document upload, no saved history).
 
 **Next iteration**
 
@@ -199,11 +199,11 @@ Our achieved P@5 of 0.33 represents **83% of the theoretical ceiling**. We hit t
 
 Pipeline stages:
 
-1. **Download** (`scripts/download_*.py`) — Fetch papers from arXiv + corpus from HuggingFace
-2. **Ingest** (`scripts/ingest.py`) — PDF → text → chunks → embeddings → FAISS index
-3. **Serve** (`scripts/serve.py`, `app.py`) — Query → retrieve → generate answer with citations
-4. **Evaluate** (`scripts/evaluate.py`) — Run experiment grid, compute IR metrics
-5. **Visualize** (`scripts/visualize.py`) — Generate charts from experiment results
+1. **Download** (`scripts/download_*.py`): Fetch papers from arXiv + corpus from HuggingFace
+2. **Ingest** (`scripts/ingest.py`): PDF → text → chunks → embeddings → FAISS index
+3. **Serve** (`scripts/serve.py`, `app.py`): Query → retrieve → generate answer with citations
+4. **Evaluate** (`scripts/evaluate.py`): Run experiment grid, compute IR metrics
+5. **Visualize** (`scripts/visualize.py`): Generate charts from experiment results
 
 ## System Topology
 
@@ -224,11 +224,11 @@ Modular monolith with CLI-driven batch stages. Each stage reads from and writes 
 
 ## Key Components
 
-- **Chunkers** (`src/chunking/`) — Fixed, recursive, semantic strategies implementing `BaseChunker`
-- **Embedders** (`src/embedding/`) — SentenceTransformer models (MiniLM, mpnet) implementing `BaseEmbedder`
-- **Retrievers** (`src/retrieval/`) — Dense, BM25, hybrid strategies implementing `BaseRetriever`
-- **Vector Store** (`src/stores/`) — FAISS-backed similarity search implementing `BaseVectorStore`
-- **Answer Generator** (`src/generation/`) — LiteLLM + citation parsing for RAG responses
+- **Chunkers** (`src/chunking/`): Fixed, recursive, semantic strategies implementing `BaseChunker`
+- **Embedders** (`src/embedding/`): SentenceTransformer models (MiniLM, mpnet) implementing `BaseEmbedder`
+- **Retrievers** (`src/retrieval/`): Dense, BM25, hybrid strategies implementing `BaseRetriever`
+- **Vector Store** (`src/stores/`): FAISS-backed similarity search implementing `BaseVectorStore`
+- **Answer Generator** (`src/generation/`): LiteLLM + citation parsing for RAG responses
 
 ## Key Decisions and Tradeoffs
 
@@ -237,9 +237,9 @@ Modular monolith with CLI-driven batch stages. Each stage reads from and writes 
 | Vector store | FAISS (local) | Pinecone, Weaviate (cloud) | Zero setup cost, no API keys, same interface via `BaseVectorStore` ABC |
 | Embedding models | SentenceTransformers (local) | OpenAI API | No API cost, no rate limits, full control over model selection |
 | Hybrid retrieval | Alpha-weighted fusion | RRF, learned fusion | Simple, interpretable, tunable; alpha sweep found optimal at 0.52 |
-| Reranking | Cross-encoder | No reranking | +7% MRR for 2× latency — worth it for quality-sensitive use cases |
+| Reranking | Cross-encoder | No reranking | +7% MRR for 2× latency, worth it for quality-sensitive use cases |
 | Caching | Layered by pipeline stage | Recompute each run | Embedding is the bottleneck; caching cuts 12 experiment runs to 6 unique embedding jobs |
-| PDF parsing | PyMuPDF + regex preprocessing | LLM-based extraction (GPT-4V, Marker, Docling) | Deterministic, fast, zero API cost. arXiv papers are text-heavy, mostly single-column, minimal tables — PyMuPDF handles them well. LLM extraction trades cost + latency for layout robustness; would be spending dollars to solve a problem we didn't have. |
+| PDF parsing | PyMuPDF + regex preprocessing | LLM-based extraction (GPT-4V, Marker, Docling) | Deterministic, fast, zero API cost. arXiv papers are text-heavy, mostly single-column, minimal tables, all of which PyMuPDF handles well. LLM extraction trades cost + latency for layout robustness; would be spending dollars to solve a problem we didn't have. |
 | Intermediate artifacts | In-memory (PDF → chunks) | Materialize .txt/.md per document | Simpler pipeline, fewer files to manage. Re-parsing is cheap (<1s/PDF). Would materialize for: slow extraction (OCR), multi-team handoffs, or debugging extraction quality. |
 
 ## Tech Stack
